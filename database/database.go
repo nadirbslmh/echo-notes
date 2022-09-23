@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"echo-notes/util"
 	"fmt"
 	"log"
 
@@ -11,9 +12,9 @@ import (
 var DB *sql.DB
 
 var (
-	DB_USERNAME string = "root"
-	DB_PASSWORD string = ""
-	DB_NAME     string = "echo_notes"
+	DB_USERNAME string = util.GetConfig("DB_USERNAME")
+	DB_PASSWORD string = util.GetConfig("DB_PASSWORD")
+	DB_NAME     string = util.GetConfig("DB_NAME")
 )
 
 func Connect() {
