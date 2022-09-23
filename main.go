@@ -2,7 +2,7 @@ package main
 
 import (
 	"echo-notes/database"
-	"net/http"
+	"echo-notes/route"
 
 	"github.com/labstack/echo/v4"
 )
@@ -10,13 +10,9 @@ import (
 func main() {
 	database.Connect()
 
-	e := echo.New() // membuat instance dari echo
+	server := echo.New()
 
-	// mendaftarkan route / utk method GET
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "alterra")
-	})
+	route.SetupRoute(server)
 
-	// menjalankan HTTP server
-	e.Logger.Fatal(e.Start(":1323"))
+	server.Logger.Fatal(server.Start(":1323"))
 }
