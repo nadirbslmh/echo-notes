@@ -26,9 +26,11 @@ func (c *NoteRepositoryImpl) GetByID(id string) model.Note {
 }
 
 func (n *NoteRepositoryImpl) Create(input model.NoteInput) model.Note {
+
 	var newNote model.Note = model.Note{
-		Title:   input.Title,
-		Content: input.Content,
+		Title:      input.Title,
+		Content:    input.Content,
+		CategoryID: input.CategoryID,
 	}
 
 	var createdNote model.Note = model.Note{}
@@ -45,6 +47,7 @@ func (n *NoteRepositoryImpl) Update(id string, input model.NoteInput) model.Note
 
 	note.Title = input.Title
 	note.Content = input.Content
+	note.CategoryID = input.CategoryID
 
 	database.DB.Save(&note)
 

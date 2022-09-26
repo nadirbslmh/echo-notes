@@ -39,6 +39,14 @@ func Create(c echo.Context) error {
 		})
 	}
 
+	err := input.Validate()
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"message": "validation failed",
+		})
+	}
+
 	note := noteService.Create(*input)
 
 	return c.JSON(http.StatusCreated, note)
@@ -54,6 +62,14 @@ func Update(c echo.Context) error {
 	}
 
 	var noteId string = c.Param("id")
+
+	err := input.Validate()
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"message": "validation failed",
+		})
+	}
 
 	note := noteService.Update(noteId, *input)
 
