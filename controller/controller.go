@@ -16,8 +16,6 @@ func GetAll(c echo.Context) error {
 	return c.JSON(http.StatusOK, notes)
 }
 
-// /notes/:id
-
 func GetByID(c echo.Context) error {
 	var id string = c.Param("id")
 
