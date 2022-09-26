@@ -12,7 +12,7 @@ type NoteRepositoryImpl struct{}
 func (n *NoteRepositoryImpl) GetAll() []model.Note {
 	var notes []model.Note
 
-	database.DB.Find(&notes)
+	database.DB.Preload("Category").Find(&notes)
 
 	return notes
 }
