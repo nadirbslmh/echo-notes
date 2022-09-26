@@ -34,3 +34,11 @@ func (n *NoteService) Update(id string, input model.NoteInput) model.Note {
 func (n *NoteService) Delete(id string) bool {
 	return n.Repository.Delete(id)
 }
+
+func (n *NoteService) Restore(id string) model.Note {
+	return n.Repository.Restore(id)
+}
+
+func (n *NoteService) ForceDelete(id string) bool {
+	return n.Repository.ForceDelete(id)
+}

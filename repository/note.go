@@ -3,6 +3,8 @@ package repository
 import (
 	"echo-notes/database"
 	"echo-notes/model"
+
+	"gorm.io/gorm"
 )
 
 type NoteRepositoryImpl struct{}
@@ -53,6 +55,30 @@ func (n *NoteRepositoryImpl) Delete(id string) bool {
 	var note model.Note = n.GetByID(id)
 
 	result := database.DB.Delete(&note)
+
+	if result.RowsAffected == 0 {
+		return false
+	}
+
+	return true
+}
+
+func (n *NoteRepositoryImpl) Restore(id string) model.Note {
+	var trashedNote model.Note
+
+	database.DB.Unscoped().First(&trashedNote, "id = ?", id)
+
+	trashedNote.DeletedAt = gorm.DeletedAt{}
+
+	database.DB.Unscoped().Save(&trashedNote)
+
+	return trashedNote
+}
+
+func (n *NoteRepositoryImpl) ForceDelete(id string) bool {
+	var note model.Note = n.GetByID(id)
+
+	result := database.DB.Unscoped().Delete(&note)
 
 	if result.RowsAffected == 0 {
 		return false

@@ -8,4 +8,6 @@ type NoteRepository interface {
 	Create(input model.NoteInput) model.Note
 	Update(id string, input model.NoteInput) model.Note
 	Delete(id string) bool
+	Restore(id string) model.Note
+	ForceDelete(id string) bool
 }

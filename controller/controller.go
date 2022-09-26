@@ -75,3 +75,30 @@ func Delete(c echo.Context) error {
 		"message": "data deleted",
 	})
 }
+
+func Restore(c echo.Context) error {
+	var noteId string = c.Param("id")
+
+	note := noteService.Restore(noteId)
+
+	return c.JSON(http.StatusOK, map[string]any{
+		"message": "data restored",
+		"data":    note,
+	})
+}
+
+func ForceDelete(c echo.Context) error {
+	var noteId string = c.Param("id")
+
+	isSuccess := noteService.ForceDelete(noteId)
+
+	if !isSuccess {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"message": "failed to delete a data",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"message": "data force deleted",
+	})
+}
