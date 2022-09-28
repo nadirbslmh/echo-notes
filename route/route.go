@@ -4,14 +4,26 @@ import (
 	"echo-notes/controller"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func SetupRoute(server *echo.Echo) {
-	server.GET("/api/v1/notes", controller.GetAll)
-	server.GET("/api/v1/notes/:id", controller.GetByID)
-	server.POST("/api/v1/notes", controller.Create)
-	server.PUT("/api/v1/notes/:id", controller.Update)
-	server.DELETE("/api/v1/notes/:id", controller.Delete)
-	server.POST("/api/v1/notes/:id", controller.Restore)
-	server.DELETE("/api/v1/notes/force/:id", controller.ForceDelete)
+	// routes for auth
+	server.POST("/api/v1/users/register", controller.Register)
+	server.POST("/api/v1/users/login", controller.Login)
+
+	privateRoutes := server.Group("")
+
+	privateRoutes.Use(middleware.JWTWithConfig(middleware.JWTConfig{
+		SigningKey: []byte("secretkey"),
+	}))
+
+	// routes for notes
+	privateRoutes.GET("/api/v1/notes", controller.GetAll)
+	privateRoutes.GET("/api/v1/notes/:id", controller.GetByID)
+	privateRoutes.POST("/api/v1/notes", controller.Create)
+	privateRoutes.PUT("/api/v1/notes/:id", controller.Update)
+	privateRoutes.DELETE("/api/v1/notes/:id", controller.Delete)
+	privateRoutes.POST("/api/v1/notes/:id", controller.Restore)
+	privateRoutes.DELETE("/api/v1/notes/force/:id", controller.ForceDelete)
 }
