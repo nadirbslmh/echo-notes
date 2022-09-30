@@ -1,10 +1,12 @@
 package controller
 
 import (
+	"echo-notes/auth"
 	"echo-notes/model"
 	"echo-notes/service"
 	"net/http"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
 
@@ -59,5 +61,23 @@ func Login(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, map[string]string{
 		"token": token,
+	})
+}
+
+func Logout(c echo.Context) error {
+	user := c.Get("user").(*jwt.Token)
+
+	isListed := auth.CheckToken(user.Raw)
+
+	if !isListed {
+		return c.JSON(http.StatusUnauthorized, map[string]string{
+			"message": "invalid token",
+		})
+	}
+
+	auth.Logout(user.Raw)
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"message": "logout success",
 	})
 }
