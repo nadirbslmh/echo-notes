@@ -13,7 +13,11 @@ var noteService service.NoteService = service.New()
 func GetAll(c echo.Context) error {
 	var notes []model.Note = noteService.GetAll()
 
-	return c.JSON(http.StatusOK, notes)
+	return c.JSON(http.StatusOK, model.Response[[]model.Note]{
+		Status:  "success",
+		Message: "all notes",
+		Data:    notes,
+	})
 }
 
 func GetByID(c echo.Context) error {
@@ -22,42 +26,54 @@ func GetByID(c echo.Context) error {
 	note := noteService.GetByID(id)
 
 	if note.ID == 0 {
-		return c.JSON(http.StatusNotFound, map[string]string{
-			"message": "note not found",
+		return c.JSON(http.StatusNotFound, model.Response[string]{
+			Status:  "failed",
+			Message: "note not found",
 		})
 	}
 
-	return c.JSON(http.StatusOK, note)
+	return c.JSON(http.StatusOK, model.Response[model.Note]{
+		Status:  "success",
+		Message: "note found",
+		Data:    note,
+	})
 }
 
 func Create(c echo.Context) error {
 	var input *model.NoteInput = new(model.NoteInput)
 
 	if err := c.Bind(input); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"message": "invalid request",
+		return c.JSON(http.StatusBadRequest, model.Response[string]{
+			Status:  "failed",
+			Message: "validation failed",
 		})
 	}
 
 	err := input.Validate()
 
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"message": "validation failed",
+		return c.JSON(http.StatusBadRequest, model.Response[string]{
+			Status:  "failed",
+			Message: "validation failed",
 		})
 	}
 
 	note := noteService.Create(*input)
 
-	return c.JSON(http.StatusCreated, note)
+	return c.JSON(http.StatusCreated, model.Response[model.Note]{
+		Status:  "success",
+		Message: "note created",
+		Data:    note,
+	})
 }
 
 func Update(c echo.Context) error {
 	var input *model.NoteInput = new(model.NoteInput)
 
 	if err := c.Bind(input); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"message": "invalid request",
+		return c.JSON(http.StatusBadRequest, model.Response[string]{
+			Status:  "failed",
+			Message: "validation failed",
 		})
 	}
 
@@ -66,14 +82,19 @@ func Update(c echo.Context) error {
 	err := input.Validate()
 
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"message": "validation failed",
+		return c.JSON(http.StatusBadRequest, model.Response[string]{
+			Status:  "failed",
+			Message: "validation failed",
 		})
 	}
 
 	note := noteService.Update(noteId, *input)
 
-	return c.JSON(http.StatusOK, note)
+	return c.JSON(http.StatusOK, model.Response[model.Note]{
+		Status:  "success",
+		Message: "note updated",
+		Data:    note,
+	})
 }
 
 func Delete(c echo.Context) error {
@@ -82,13 +103,15 @@ func Delete(c echo.Context) error {
 	isSuccess := noteService.Delete(noteId)
 
 	if !isSuccess {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"message": "failed to delete a data",
+		return c.JSON(http.StatusInternalServerError, model.Response[string]{
+			Status:  "failed",
+			Message: "data deletion failed",
 		})
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{
-		"message": "data deleted",
+	return c.JSON(http.StatusOK, model.Response[string]{
+		Status:  "success",
+		Message: "note deleted",
 	})
 }
 
@@ -97,9 +120,10 @@ func Restore(c echo.Context) error {
 
 	note := noteService.Restore(noteId)
 
-	return c.JSON(http.StatusOK, map[string]any{
-		"message": "data restored",
-		"data":    note,
+	return c.JSON(http.StatusOK, model.Response[model.Note]{
+		Status:  "success",
+		Message: "data restored",
+		Data:    note,
 	})
 }
 
@@ -109,12 +133,14 @@ func ForceDelete(c echo.Context) error {
 	isSuccess := noteService.ForceDelete(noteId)
 
 	if !isSuccess {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"message": "failed to delete a data",
+		return c.JSON(http.StatusInternalServerError, model.Response[string]{
+			Status:  "failed",
+			Message: "data force deletion failed",
 		})
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{
-		"message": "data force deleted",
+	return c.JSON(http.StatusOK, model.Response[string]{
+		Status:  "success",
+		Message: "note force deleted",
 	})
 }
