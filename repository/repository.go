@@ -16,3 +16,11 @@ type AuthRepository interface {
 	Register(input model.UserInput) model.User
 	Login(input model.UserInput) string
 }
+
+type CategoryRepository interface {
+	GetAll() []model.Category
+	GetByID(id string) model.Category
+	Create(input model.CategoryInput) model.Category
+	Update(id string, input model.CategoryInput) model.Category
+	Delete(id string) bool
+}

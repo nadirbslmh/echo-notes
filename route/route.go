@@ -30,6 +30,12 @@ func SetupRoute(server *echo.Echo) {
 	privateRoutes.POST("/api/v1/notes/:id", controller.Restore)
 	privateRoutes.DELETE("/api/v1/notes/force/:id", controller.ForceDelete)
 
+	// routes for categories
+	privateRoutes.GET("/api/v1/categories", controller.GetAllCategories)
+	privateRoutes.POST("/api/v1/categories", controller.CreateCategory)
+	privateRoutes.PUT("/api/v1/categories/:id", controller.UpdateCategory)
+	privateRoutes.DELETE("/api/v1/categories/:id", controller.DeleteCategory)
+
 	// logout
 	privateRoutes.POST("/api/v1/users/logout", controller.Logout)
 }
