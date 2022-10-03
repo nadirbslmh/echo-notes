@@ -90,6 +90,13 @@ func Update(c echo.Context) error {
 
 	note := noteService.Update(noteId, *input)
 
+	if note.ID == 0 {
+		return c.JSON(http.StatusNotFound, model.Response[string]{
+			Status:  "failed",
+			Message: "note not found",
+		})
+	}
+
 	return c.JSON(http.StatusOK, model.Response[model.Note]{
 		Status:  "success",
 		Message: "note updated",
