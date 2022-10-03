@@ -56,7 +56,7 @@ func getJWTToken(t *testing.T) string {
 	return JWT_TOKEN
 }
 
-func TestSignup_Success(t *testing.T) {
+func TestRegister_Success(t *testing.T) {
 	var userRequest *model.UserInput = &model.UserInput{
 		Email:    "test@mail.com",
 		Password: "123123",
@@ -72,7 +72,7 @@ func TestSignup_Success(t *testing.T) {
 		End()
 }
 
-func TestSignup_ValidationFailed(t *testing.T) {
+func TestRegister_ValidationFailed(t *testing.T) {
 	var userRequest *model.UserInput = &model.UserInput{
 		Email:    "",
 		Password: "",
@@ -135,8 +135,6 @@ func TestLogin_Failed(t *testing.T) {
 }
 
 func TestGetNotes_Success(t *testing.T) {
-	database.InitTestDB()
-
 	var token string = getJWTToken(t)
 
 	apitest.New().
