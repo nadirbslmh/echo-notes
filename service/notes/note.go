@@ -3,6 +3,7 @@ package service
 import (
 	"echo-notes/model"
 	"echo-notes/repository"
+	noteRepository "echo-notes/repository/notes"
 )
 
 type NoteService struct {
@@ -11,7 +12,7 @@ type NoteService struct {
 
 func New() NoteService {
 	return NoteService{
-		Repository: &repository.NoteRepositoryImpl{},
+		Repository: &noteRepository.NoteRepositoryImpl{},
 	}
 }
 

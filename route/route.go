@@ -1,7 +1,9 @@
 package route
 
 import (
-	"echo-notes/controller"
+	CategoryController "echo-notes/controller/categories"
+	NoteController "echo-notes/controller/notes"
+	UserController "echo-notes/controller/users"
 	"echo-notes/middlewares"
 
 	"github.com/labstack/echo/v4"
@@ -10,8 +12,8 @@ import (
 
 func SetupRoute(server *echo.Echo) {
 	// routes for auth
-	server.POST("/api/v1/users/register", controller.Register)
-	server.POST("/api/v1/users/login", controller.Login)
+	server.POST("/api/v1/users/register", UserController.Register)
+	server.POST("/api/v1/users/login", UserController.Login)
 
 	privateRoutes := server.Group("")
 
@@ -22,20 +24,20 @@ func SetupRoute(server *echo.Echo) {
 	privateRoutes.Use(middlewares.CheckTokenMiddleware)
 
 	// routes for notes
-	privateRoutes.GET("/api/v1/notes", controller.GetAll)
-	privateRoutes.GET("/api/v1/notes/:id", controller.GetByID)
-	privateRoutes.POST("/api/v1/notes", controller.Create)
-	privateRoutes.PUT("/api/v1/notes/:id", controller.Update)
-	privateRoutes.DELETE("/api/v1/notes/:id", controller.Delete)
-	privateRoutes.POST("/api/v1/notes/:id", controller.Restore)
-	privateRoutes.DELETE("/api/v1/notes/force/:id", controller.ForceDelete)
+	privateRoutes.GET("/api/v1/notes", NoteController.GetAll)
+	privateRoutes.GET("/api/v1/notes/:id", NoteController.GetByID)
+	privateRoutes.POST("/api/v1/notes", NoteController.Create)
+	privateRoutes.PUT("/api/v1/notes/:id", NoteController.Update)
+	privateRoutes.DELETE("/api/v1/notes/:id", NoteController.Delete)
+	privateRoutes.POST("/api/v1/notes/:id", NoteController.Restore)
+	privateRoutes.DELETE("/api/v1/notes/force/:id", NoteController.ForceDelete)
 
 	// routes for categories
-	privateRoutes.GET("/api/v1/categories", controller.GetAllCategories)
-	privateRoutes.POST("/api/v1/categories", controller.CreateCategory)
-	privateRoutes.PUT("/api/v1/categories/:id", controller.UpdateCategory)
-	privateRoutes.DELETE("/api/v1/categories/:id", controller.DeleteCategory)
+	privateRoutes.GET("/api/v1/categories", CategoryController.GetAllCategories)
+	privateRoutes.POST("/api/v1/categories", CategoryController.CreateCategory)
+	privateRoutes.PUT("/api/v1/categories/:id", CategoryController.UpdateCategory)
+	privateRoutes.DELETE("/api/v1/categories/:id", CategoryController.DeleteCategory)
 
 	// logout
-	privateRoutes.POST("/api/v1/users/logout", controller.Logout)
+	privateRoutes.POST("/api/v1/users/logout", UserController.Logout)
 }

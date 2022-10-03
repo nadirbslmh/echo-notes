@@ -2,7 +2,7 @@ package controller
 
 import (
 	"echo-notes/model"
-	"echo-notes/service"
+	service "echo-notes/service/notes"
 	"net/http"
 
 	"github.com/labstack/echo/v4"

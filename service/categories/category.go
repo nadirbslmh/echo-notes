@@ -3,6 +3,7 @@ package service
 import (
 	"echo-notes/model"
 	"echo-notes/repository"
+	categoryRepository "echo-notes/repository/categories"
 )
 
 type CategoryService struct {
@@ -11,7 +12,7 @@ type CategoryService struct {
 
 func NewCategoryService() CategoryService {
 	return CategoryService{
-		Repository: &repository.CategoryRepositoryImpl{},
+		Repository: &categoryRepository.CategoryRepositoryImpl{},
 	}
 }
 

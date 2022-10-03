@@ -3,6 +3,7 @@ package service
 import (
 	"echo-notes/model"
 	"echo-notes/repository"
+	userRepository "echo-notes/repository/users"
 )
 
 type AuthService struct {
@@ -11,7 +12,7 @@ type AuthService struct {
 
 func NewAuthService() AuthService {
 	return AuthService{
-		Repository: &repository.AuthRepositoryImpl{},
+		Repository: &userRepository.AuthRepositoryImpl{},
 	}
 }
 

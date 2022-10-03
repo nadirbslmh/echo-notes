@@ -3,7 +3,7 @@ package controller
 import (
 	"echo-notes/auth"
 	"echo-notes/model"
-	"echo-notes/service"
+	service "echo-notes/service/users"
 	"net/http"
 
 	"github.com/golang-jwt/jwt"
