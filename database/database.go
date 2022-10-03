@@ -125,6 +125,8 @@ func SeedUser() model.User {
 }
 
 func CleanSeeders() {
+	DB.Exec("SET FOREIGN_KEY_CHECKS = 0")
+
 	categoryResult := DB.Exec("DELETE FROM categories")
 	itemResult := DB.Exec("DELETE FROM notes")
 	userResult := DB.Exec("DELETE FROM users")

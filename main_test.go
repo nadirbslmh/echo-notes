@@ -140,6 +140,7 @@ func TestGetNotes_Success(t *testing.T) {
 	var token string = getJWTToken(t)
 
 	apitest.New().
+		Observe(cleanup).
 		Handler(newApp()).
 		Get("/api/v1/notes").
 		Header("Authorization", token).
@@ -156,6 +157,7 @@ func TestGetNote_Success(t *testing.T) {
 	var token string = getJWTToken(t)
 
 	apitest.New().
+		Observe(cleanup).
 		Handler(newApp()).
 		Get("/api/v1/notes/"+noteID).
 		Header("Authorization", token).
@@ -188,6 +190,7 @@ func TestCreateNote_Success(t *testing.T) {
 	var token string = getJWTToken(t)
 
 	apitest.New().
+		Observe(cleanup).
 		Handler(newApp()).
 		Post("/api/v1/notes").
 		Header("Authorization", token).
@@ -228,6 +231,7 @@ func TestUpdateNote_Success(t *testing.T) {
 	var token string = getJWTToken(t)
 
 	apitest.New().
+		Observe(cleanup).
 		Handler(newApp()).
 		Put("/api/v1/notes/"+noteID).
 		Header("Authorization", token).
@@ -264,6 +268,7 @@ func TestDeleteNote_Success(t *testing.T) {
 	noteID := strconv.Itoa(int(note.ID))
 
 	apitest.New().
+		Observe(cleanup).
 		Handler(newApp()).
 		Delete("/api/v1/notes/"+noteID).
 		Header("Authorization", token).
