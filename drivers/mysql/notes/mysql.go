@@ -19,7 +19,7 @@ func NewMySQLRepository(conn *gorm.DB) notes.Repository {
 func (nr *noteRepository) GetAll() []notes.Domain {
 	var rec []Note
 
-	nr.conn.Find(&rec)
+	nr.conn.Preload("Category").Find(&rec)
 
 	noteDomain := []notes.Domain{}
 
@@ -33,37 +33,41 @@ func (nr *noteRepository) GetAll() []notes.Domain {
 func (nr *noteRepository) GetByID(id string) notes.Domain {
 	var note Note
 
-	nr.conn.First(&note, "id = ?", id)
+	nr.conn.Preload("Category").First(&note, "id = ?", id)
 
 	return note.ToDomain()
 }
 
 func (nr *noteRepository) Create(noteDomain *notes.Domain) notes.Domain {
-	var createdNote notes.Domain
+	rec := FromDomain(noteDomain)
 
-	result := nr.conn.Create(&noteDomain)
+	result := nr.conn.Create(&rec)
 
-	result.Last(&createdNote)
+	result.Last(&rec)
 
-	return createdNote
+	return rec.ToDomain()
 }
 
 func (nr *noteRepository) Update(id string, noteDomain *notes.Domain) notes.Domain {
 	var note notes.Domain = nr.GetByID(id)
 
-	note.Title = noteDomain.Title
-	note.Content = noteDomain.Content
-	note.CategoryID = noteDomain.CategoryID
+	updatedNote := FromDomain(&note)
 
-	nr.conn.Save(&note)
+	updatedNote.Title = noteDomain.Title
+	updatedNote.Content = noteDomain.Content
+	updatedNote.CategoryID = noteDomain.CategoryID
 
-	return note
+	nr.conn.Save(&updatedNote)
+
+	return updatedNote.ToDomain()
 }
 
 func (nr *noteRepository) Delete(id string) bool {
 	var note notes.Domain = nr.GetByID(id)
 
-	result := nr.conn.Delete(&note)
+	deletedNote := FromDomain(&note)
+
+	result := nr.conn.Delete(&deletedNote)
 
 	if result.RowsAffected == 0 {
 		return false
@@ -75,19 +79,23 @@ func (nr *noteRepository) Delete(id string) bool {
 func (nr *noteRepository) Restore(id string) notes.Domain {
 	var trashedNote notes.Domain
 
-	nr.conn.Unscoped().First(&trashedNote, "id = ?", id)
+	trashed := FromDomain(&trashedNote)
 
-	trashedNote.DeletedAt = gorm.DeletedAt{}
+	nr.conn.Unscoped().First(&trashed, "id = ?", id)
 
-	nr.conn.Unscoped().Save(&trashedNote)
+	trashed.DeletedAt = gorm.DeletedAt{}
 
-	return trashedNote
+	nr.conn.Unscoped().Save(&trashed)
+
+	return trashed.ToDomain()
 }
 
 func (nr *noteRepository) ForceDelete(id string) bool {
 	var note notes.Domain = nr.GetByID(id)
 
-	result := nr.conn.Unscoped().Delete(&note)
+	deletedNote := FromDomain(&note)
+
+	result := nr.conn.Unscoped().Delete(&deletedNote)
 
 	if result.RowsAffected == 0 {
 		return false

@@ -51,7 +51,7 @@ func main() {
 	noteCtrl := _noteController.NewNoteController(noteUsecase)
 
 	userRepo := _driverFactory.NewUserRepository(db)
-	userUsecase := _userUseCase.NewUserUsecase(userRepo)
+	userUsecase := _userUseCase.NewUserUsecase(userRepo, &configJWT)
 	userCtrl := _userController.NewAuthController(userUsecase)
 
 	routesInit := _routes.ControllerList{

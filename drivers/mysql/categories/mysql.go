@@ -39,30 +39,33 @@ func (cr *categoryRepository) GetByID(id string) categories.Domain {
 }
 
 func (cr *categoryRepository) Create(categoryDomain *categories.Domain) categories.Domain {
+	rec := FromDomain(categoryDomain)
 
-	result := cr.conn.Create(&categoryDomain)
+	result := cr.conn.Create(&rec)
 
-	var createdCategory categories.Domain
+	result.Last(&rec)
 
-	result.Last(&createdCategory)
-
-	return createdCategory
+	return rec.ToDomain()
 }
 
 func (cr *categoryRepository) Update(id string, categoryDomain *categories.Domain) categories.Domain {
 	var category categories.Domain = cr.GetByID(id)
 
-	category.Name = categoryDomain.Name
+	updatedCategory := FromDomain(&category)
 
-	cr.conn.Save(&category)
+	updatedCategory.Name = categoryDomain.Name
 
-	return category
+	cr.conn.Save(&updatedCategory)
+
+	return updatedCategory.ToDomain()
 }
 
 func (cr *categoryRepository) Delete(id string) bool {
 	var category categories.Domain = cr.GetByID(id)
 
-	result := cr.conn.Unscoped().Delete(&category)
+	deletedCategory := FromDomain(&category)
+
+	result := cr.conn.Unscoped().Delete(deletedCategory)
 
 	if result.RowsAffected == 0 {
 		return false

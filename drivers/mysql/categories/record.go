@@ -24,3 +24,13 @@ func (rec *Category) ToDomain() categories.Domain {
 		DeletedAt: rec.DeletedAt,
 	}
 }
+
+func FromDomain(domain *categories.Domain) *Category {
+	return &Category{
+		ID:        domain.ID,
+		Name:      domain.Name,
+		CreatedAt: domain.CreatedAt,
+		UpdatedAt: domain.UpdatedAt,
+		DeletedAt: domain.DeletedAt,
+	}
+}

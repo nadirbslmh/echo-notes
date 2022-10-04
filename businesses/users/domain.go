@@ -22,5 +22,5 @@ type Usecase interface {
 
 type Repository interface {
 	Register(userDomain *Domain) Domain
-	Login(userDomain *Domain) string
+	GetByEmail(userDomain *Domain) Domain
 }

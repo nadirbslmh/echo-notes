@@ -1,12 +1,16 @@
 package users
 
+import "echo-notes/app/middlewares"
+
 type UserUsecase struct {
 	userRepository Repository
+	jwtAuth        *middlewares.ConfigJWT
 }
 
-func NewUserUsecase(ur Repository) Usecase {
+func NewUserUsecase(ur Repository, jwtAuth *middlewares.ConfigJWT) Usecase {
 	return &UserUsecase{
 		userRepository: ur,
+		jwtAuth:        jwtAuth,
 	}
 }
 
@@ -15,5 +19,13 @@ func (uu *UserUsecase) Register(userDomain *Domain) Domain {
 }
 
 func (uu *UserUsecase) Login(userDomain *Domain) string {
-	return uu.userRepository.Login(userDomain)
+	user := uu.userRepository.GetByEmail(userDomain)
+
+	if user.ID == 0 {
+		return ""
+	}
+
+	token := uu.jwtAuth.GenerateToken(int(user.ID))
+
+	return token
 }

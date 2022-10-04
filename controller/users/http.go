@@ -1,7 +1,7 @@
 package users
 
 import (
-	"echo-notes/auth"
+	"echo-notes/app/middlewares"
 	"echo-notes/businesses/users"
 	"echo-notes/controller/users/request"
 	"net/http"
@@ -75,7 +75,7 @@ func (ctrl *AuthController) Login(c echo.Context) error {
 func (ctrl *AuthController) Logout(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
 
-	isListed := auth.CheckToken(user.Raw)
+	isListed := middlewares.CheckToken(user.Raw)
 
 	if !isListed {
 		return c.JSON(http.StatusUnauthorized, map[string]string{
@@ -83,7 +83,7 @@ func (ctrl *AuthController) Logout(c echo.Context) error {
 		})
 	}
 
-	auth.Logout(user.Raw)
+	middlewares.Logout(user.Raw)
 
 	return c.JSON(http.StatusOK, map[string]string{
 		"message": "logout success",
