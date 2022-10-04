@@ -40,6 +40,10 @@ func main() {
 		ExpiresDuration: 1,
 	}
 
+	configLogger := _middleware.ConfigLogger{
+		Format: "[${time_rfc3339}] ${status} ${method} ${host} ${path} ${latency_human}" + "\n",
+	}
+
 	e := echo.New()
 
 	categoryRepo := _driverFactory.NewCategoryRepository(db)
@@ -55,6 +59,7 @@ func main() {
 	userCtrl := _userController.NewAuthController(userUsecase)
 
 	routesInit := _routes.ControllerList{
+		LoggerMiddleware:   configLogger.Init(),
 		JWTMiddleware:      configJWT.Init(),
 		CategoryController: *categoryCtrl,
 		NoteController:     *noteCtrl,

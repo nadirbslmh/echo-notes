@@ -3,6 +3,7 @@ package notes
 import (
 	"echo-notes/businesses/notes"
 	"echo-notes/controller/notes/request"
+	"echo-notes/controller/notes/response"
 	"echo-notes/model"
 	"net/http"
 
@@ -22,10 +23,16 @@ func NewNoteController(noteUC notes.Usecase) *NoteController {
 func (ctrl *NoteController) GetAll(c echo.Context) error {
 	notesData := ctrl.noteUseCase.GetAll()
 
-	return c.JSON(http.StatusOK, model.Response[[]notes.Domain]{
+	notes := []response.Note{}
+
+	for _, note := range notesData {
+		notes = append(notes, response.FromDomain(note))
+	}
+
+	return c.JSON(http.StatusOK, model.Response[[]response.Note]{
 		Status:  "success",
 		Message: "all notes",
-		Data:    notesData,
+		Data:    notes,
 	})
 }
 
@@ -41,10 +48,10 @@ func (ctrl *NoteController) GetByID(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(http.StatusOK, model.Response[notes.Domain]{
+	return c.JSON(http.StatusOK, model.Response[response.Note]{
 		Status:  "success",
 		Message: "note found",
-		Data:    note,
+		Data:    response.FromDomain(note),
 	})
 }
 
@@ -69,10 +76,10 @@ func (ctrl *NoteController) Create(c echo.Context) error {
 
 	note := ctrl.noteUseCase.Create(input.ToDomain())
 
-	return c.JSON(http.StatusCreated, model.Response[notes.Domain]{
+	return c.JSON(http.StatusCreated, model.Response[response.Note]{
 		Status:  "success",
 		Message: "note created",
-		Data:    note,
+		Data:    response.FromDomain(note),
 	})
 }
 
@@ -106,10 +113,10 @@ func (ctrl *NoteController) Update(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(http.StatusOK, model.Response[notes.Domain]{
+	return c.JSON(http.StatusOK, model.Response[response.Note]{
 		Status:  "success",
 		Message: "note updated",
-		Data:    note,
+		Data:    response.FromDomain(note),
 	})
 }
 
@@ -136,10 +143,10 @@ func (ctrl *NoteController) Restore(c echo.Context) error {
 
 	note := ctrl.noteUseCase.Restore(noteId)
 
-	return c.JSON(http.StatusOK, model.Response[notes.Domain]{
+	return c.JSON(http.StatusOK, model.Response[response.Note]{
 		Status:  "success",
 		Message: "data restored",
-		Data:    note,
+		Data:    response.FromDomain(note),
 	})
 }
 

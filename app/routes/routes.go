@@ -10,6 +10,7 @@ import (
 )
 
 type ControllerList struct {
+	LoggerMiddleware   echo.MiddlewareFunc
 	JWTMiddleware      middleware.JWTConfig
 	AuthController     users.AuthController
 	NoteController     notes.NoteController
@@ -17,6 +18,8 @@ type ControllerList struct {
 }
 
 func (cl *ControllerList) RouteRegister(e *echo.Echo) {
+	e.Use(cl.LoggerMiddleware)
+
 	users := e.Group("/api/v1/users")
 
 	users.POST("/register", cl.AuthController.Register)

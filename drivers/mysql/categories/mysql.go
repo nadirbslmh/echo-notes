@@ -65,7 +65,7 @@ func (cr *categoryRepository) Delete(id string) bool {
 
 	deletedCategory := FromDomain(&category)
 
-	result := cr.conn.Unscoped().Delete(deletedCategory)
+	result := cr.conn.Unscoped().Delete(&deletedCategory)
 
 	if result.RowsAffected == 0 {
 		return false

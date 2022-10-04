@@ -4,6 +4,7 @@ import (
 	"echo-notes/app/middlewares"
 	"echo-notes/businesses/users"
 	"echo-notes/controller/users/request"
+	"echo-notes/controller/users/response"
 	"net/http"
 
 	"github.com/golang-jwt/jwt"
@@ -39,7 +40,7 @@ func (ctrl *AuthController) Register(c echo.Context) error {
 
 	user := ctrl.authUseCase.Register(userInput.ToDomain())
 
-	return c.JSON(http.StatusCreated, user)
+	return c.JSON(http.StatusCreated, response.FromDomain(user))
 }
 
 func (ctrl *AuthController) Login(c echo.Context) error {

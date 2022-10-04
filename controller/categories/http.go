@@ -3,6 +3,7 @@ package categories
 import (
 	"echo-notes/businesses/categories"
 	"echo-notes/controller/categories/request"
+	"echo-notes/controller/categories/response"
 	"echo-notes/model"
 	"net/http"
 
@@ -22,10 +23,16 @@ func NewCategoryController(categoryUC categories.Usecase) *CategoryController {
 func (ctrl *CategoryController) GetAllCategories(c echo.Context) error {
 	categoriesData := ctrl.categoryUseCase.GetAll()
 
-	return c.JSON(http.StatusOK, model.Response[[]categories.Domain]{
+	categories := []response.Category{}
+
+	for _, category := range categoriesData {
+		categories = append(categories, response.FromDomain(category))
+	}
+
+	return c.JSON(http.StatusOK, model.Response[[]response.Category]{
 		Status:  "success",
 		Message: "all categories",
-		Data:    categoriesData,
+		Data:    categories,
 	})
 }
 
@@ -52,10 +59,10 @@ func (ctrl *CategoryController) CreateCategory(c echo.Context) error {
 
 	category := ctrl.categoryUseCase.Create(input.ToDomain())
 
-	return c.JSON(http.StatusCreated, model.Response[categories.Domain]{
+	return c.JSON(http.StatusCreated, model.Response[response.Category]{
 		Status:  "success",
 		Message: "category created",
-		Data:    category,
+		Data:    response.FromDomain(category),
 	})
 }
 
@@ -84,10 +91,10 @@ func (ctrl *CategoryController) UpdateCategory(c echo.Context) error {
 
 	category := ctrl.categoryUseCase.Update(id, input.ToDomain())
 
-	return c.JSON(http.StatusOK, model.Response[categories.Domain]{
+	return c.JSON(http.StatusOK, model.Response[response.Category]{
 		Status:  "success",
 		Message: "category updated",
-		Data:    category,
+		Data:    response.FromDomain(category),
 	})
 }
 
