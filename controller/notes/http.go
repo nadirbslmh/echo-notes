@@ -2,9 +2,9 @@ package notes
 
 import (
 	"echo-notes/businesses/notes"
+	"echo-notes/controller"
 	"echo-notes/controller/notes/request"
 	"echo-notes/controller/notes/response"
-	"echo-notes/model"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -29,11 +29,7 @@ func (ctrl *NoteController) GetAll(c echo.Context) error {
 		notes = append(notes, response.FromDomain(note))
 	}
 
-	return c.JSON(http.StatusOK, model.Response[[]response.Note]{
-		Status:  "success",
-		Message: "all notes",
-		Data:    notes,
-	})
+	return controller.NewResponse(c, http.StatusOK, "success", "all notes", notes)
 }
 
 func (ctrl *NoteController) GetByID(c echo.Context) error {
@@ -42,55 +38,35 @@ func (ctrl *NoteController) GetByID(c echo.Context) error {
 	note := ctrl.noteUseCase.GetByID(id)
 
 	if note.ID == 0 {
-		return c.JSON(http.StatusNotFound, model.Response[string]{
-			Status:  "failed",
-			Message: "note not found",
-		})
+		return controller.NewResponse(c, http.StatusNotFound, "failed", "note not found", "")
 	}
 
-	return c.JSON(http.StatusOK, model.Response[response.Note]{
-		Status:  "success",
-		Message: "note found",
-		Data:    response.FromDomain(note),
-	})
+	return controller.NewResponse(c, http.StatusOK, "success", "note found", response.FromDomain(note))
 }
 
 func (ctrl *NoteController) Create(c echo.Context) error {
 	input := request.Note{}
 
 	if err := c.Bind(&input); err != nil {
-		return c.JSON(http.StatusBadRequest, model.Response[string]{
-			Status:  "failed",
-			Message: "validation failed",
-		})
+		return controller.NewResponse(c, http.StatusBadRequest, "failed", "validation failed", "")
 	}
 
 	err := input.Validate()
 
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, model.Response[string]{
-			Status:  "failed",
-			Message: "validation failed",
-		})
+		return controller.NewResponse(c, http.StatusBadRequest, "failed", "validation failed", "")
 	}
 
 	note := ctrl.noteUseCase.Create(input.ToDomain())
 
-	return c.JSON(http.StatusCreated, model.Response[response.Note]{
-		Status:  "success",
-		Message: "note created",
-		Data:    response.FromDomain(note),
-	})
+	return controller.NewResponse(c, http.StatusCreated, "success", "note created", response.FromDomain(note))
 }
 
 func (ctrl *NoteController) Update(c echo.Context) error {
 	input := request.Note{}
 
 	if err := c.Bind(&input); err != nil {
-		return c.JSON(http.StatusBadRequest, model.Response[string]{
-			Status:  "failed",
-			Message: "validation failed",
-		})
+		return controller.NewResponse(c, http.StatusBadRequest, "failed", "validation failed", "")
 	}
 
 	var noteId string = c.Param("id")
@@ -98,26 +74,16 @@ func (ctrl *NoteController) Update(c echo.Context) error {
 	err := input.Validate()
 
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, model.Response[string]{
-			Status:  "failed",
-			Message: "validation failed",
-		})
+		return controller.NewResponse(c, http.StatusBadRequest, "failed", "validation failed", "")
 	}
 
 	note := ctrl.noteUseCase.Update(noteId, input.ToDomain())
 
 	if note.ID == 0 {
-		return c.JSON(http.StatusNotFound, model.Response[string]{
-			Status:  "failed",
-			Message: "note not found",
-		})
+		return controller.NewResponse(c, http.StatusNotFound, "failed", "note not found", "")
 	}
 
-	return c.JSON(http.StatusOK, model.Response[response.Note]{
-		Status:  "success",
-		Message: "note updated",
-		Data:    response.FromDomain(note),
-	})
+	return controller.NewResponse(c, http.StatusOK, "success", "note updated", response.FromDomain(note))
 }
 
 func (ctrl *NoteController) Delete(c echo.Context) error {
@@ -126,16 +92,10 @@ func (ctrl *NoteController) Delete(c echo.Context) error {
 	isSuccess := ctrl.noteUseCase.Delete(noteId)
 
 	if !isSuccess {
-		return c.JSON(http.StatusInternalServerError, model.Response[string]{
-			Status:  "failed",
-			Message: "data deletion failed",
-		})
+		return controller.NewResponse(c, http.StatusNotFound, "failed", "note not found", "")
 	}
 
-	return c.JSON(http.StatusOK, model.Response[string]{
-		Status:  "success",
-		Message: "note deleted",
-	})
+	return controller.NewResponse(c, http.StatusOK, "success", "note deleted", "")
 }
 
 func (ctrl *NoteController) Restore(c echo.Context) error {
@@ -143,11 +103,11 @@ func (ctrl *NoteController) Restore(c echo.Context) error {
 
 	note := ctrl.noteUseCase.Restore(noteId)
 
-	return c.JSON(http.StatusOK, model.Response[response.Note]{
-		Status:  "success",
-		Message: "data restored",
-		Data:    response.FromDomain(note),
-	})
+	if note.ID == 0 {
+		return controller.NewResponse(c, http.StatusNotFound, "failed", "note not found", "")
+	}
+
+	return controller.NewResponse(c, http.StatusOK, "success", "note restored", response.FromDomain(note))
 }
 
 func (ctrl *NoteController) ForceDelete(c echo.Context) error {
@@ -156,14 +116,8 @@ func (ctrl *NoteController) ForceDelete(c echo.Context) error {
 	isSuccess := ctrl.noteUseCase.ForceDelete(noteId)
 
 	if !isSuccess {
-		return c.JSON(http.StatusInternalServerError, model.Response[string]{
-			Status:  "failed",
-			Message: "data force deletion failed",
-		})
+		return controller.NewResponse(c, http.StatusNotFound, "failed", "note not found", "")
 	}
 
-	return c.JSON(http.StatusOK, model.Response[string]{
-		Status:  "success",
-		Message: "note force deleted",
-	})
+	return controller.NewResponse(c, http.StatusOK, "success", "note deleted permanently", "")
 }

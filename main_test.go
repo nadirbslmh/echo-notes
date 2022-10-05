@@ -408,7 +408,67 @@ func TestDeleteNote_Failed(t *testing.T) {
 		Delete("/api/v1/notes/-1").
 		Header("Authorization", token).
 		Expect(t).
-		Status(http.StatusInternalServerError).
+		Status(http.StatusNotFound).
+		End()
+}
+
+func TestRestoreNote_Success(t *testing.T) {
+	var note notes.Note = getNote()
+
+	var token string = getJWTToken(t)
+
+	noteID := strconv.Itoa(int(note.ID))
+
+	apitest.New().
+		Observe(cleanup).
+		Handler(newApp()).
+		Post("/api/v1/notes/"+noteID).
+		Header("Authorization", token).
+		Expect(t).
+		Status(http.StatusOK).
+		End()
+}
+
+func TestRestoreNote_Failed(t *testing.T) {
+	var token string = getJWTToken(t)
+
+	apitest.New().
+		Handler(newApp()).
+		Observe(cleanup).
+		Post("/api/v1/notes/-1").
+		Header("Authorization", token).
+		Expect(t).
+		Status(http.StatusNotFound).
+		End()
+}
+
+func TestForceDeleteNote_Success(t *testing.T) {
+	var note notes.Note = getNote()
+
+	var token string = getJWTToken(t)
+
+	noteID := strconv.Itoa(int(note.ID))
+
+	apitest.New().
+		Observe(cleanup).
+		Handler(newApp()).
+		Delete("/api/v1/notes/force/"+noteID).
+		Header("Authorization", token).
+		Expect(t).
+		Status(http.StatusOK).
+		End()
+}
+
+func TestForceDeleteNote_Failed(t *testing.T) {
+	var token string = getJWTToken(t)
+
+	apitest.New().
+		Handler(newApp()).
+		Observe(cleanup).
+		Post("/api/v1/notes/force/-1").
+		Header("Authorization", token).
+		Expect(t).
+		Status(http.StatusNotFound).
 		End()
 }
 

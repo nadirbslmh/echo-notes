@@ -2,9 +2,9 @@ package categories
 
 import (
 	"echo-notes/businesses/categories"
+	"echo-notes/controller"
 	"echo-notes/controller/categories/request"
 	"echo-notes/controller/categories/response"
-	"echo-notes/model"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -29,52 +29,32 @@ func (ctrl *CategoryController) GetAllCategories(c echo.Context) error {
 		categories = append(categories, response.FromDomain(category))
 	}
 
-	return c.JSON(http.StatusOK, model.Response[[]response.Category]{
-		Status:  "success",
-		Message: "all categories",
-		Data:    categories,
-	})
+	return controller.NewResponse(c, http.StatusOK, "success", "all categories", categories)
 }
 
 func (ctrl *CategoryController) CreateCategory(c echo.Context) error {
 	input := request.Category{}
 
 	if err := c.Bind(&input); err != nil {
-		return c.JSON(http.StatusBadRequest, model.Response[any]{
-			Status:  "failed",
-			Message: "validation failed",
-			Data:    nil,
-		})
+		return controller.NewResponse(c, http.StatusBadRequest, "failed", "validation failed", "")
 	}
 
 	err := input.Validate()
 
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, model.Response[any]{
-			Status:  "failed",
-			Message: "validation failed",
-			Data:    nil,
-		})
+		return controller.NewResponse(c, http.StatusBadRequest, "failed", "validation failed", "")
 	}
 
 	category := ctrl.categoryUseCase.Create(input.ToDomain())
 
-	return c.JSON(http.StatusCreated, model.Response[response.Category]{
-		Status:  "success",
-		Message: "category created",
-		Data:    response.FromDomain(category),
-	})
+	return controller.NewResponse(c, http.StatusCreated, "success", "category created", response.FromDomain(category))
 }
 
 func (ctrl *CategoryController) UpdateCategory(c echo.Context) error {
 	input := request.Category{}
 
 	if err := c.Bind(&input); err != nil {
-		return c.JSON(http.StatusBadRequest, model.Response[any]{
-			Status:  "failed",
-			Message: "validation failed",
-			Data:    nil,
-		})
+		return controller.NewResponse(c, http.StatusBadRequest, "failed", "validation failed", "")
 	}
 
 	var id string = c.Param("id")
@@ -82,20 +62,12 @@ func (ctrl *CategoryController) UpdateCategory(c echo.Context) error {
 	err := input.Validate()
 
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, model.Response[any]{
-			Status:  "failed",
-			Message: "validation failed",
-			Data:    nil,
-		})
+		return controller.NewResponse(c, http.StatusBadRequest, "failed", "validation failed", "")
 	}
 
 	category := ctrl.categoryUseCase.Update(id, input.ToDomain())
 
-	return c.JSON(http.StatusOK, model.Response[response.Category]{
-		Status:  "success",
-		Message: "category updated",
-		Data:    response.FromDomain(category),
-	})
+	return controller.NewResponse(c, http.StatusOK, "success", "category updated", response.FromDomain(category))
 }
 
 func (ctrl *CategoryController) DeleteCategory(c echo.Context) error {
@@ -104,16 +76,8 @@ func (ctrl *CategoryController) DeleteCategory(c echo.Context) error {
 	isDeleted := ctrl.categoryUseCase.Delete(id)
 
 	if !isDeleted {
-		return c.JSON(http.StatusNotFound, model.Response[bool]{
-			Status:  "failed",
-			Message: "category not found",
-			Data:    isDeleted,
-		})
+		return controller.NewResponse(c, http.StatusNotFound, "failed", "category not found", "")
 	}
 
-	return c.JSON(http.StatusOK, model.Response[bool]{
-		Status:  "success",
-		Message: "category deleted",
-		Data:    isDeleted,
-	})
+	return controller.NewResponse(c, http.StatusOK, "success", "category deleted", "")
 }
