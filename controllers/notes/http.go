@@ -2,9 +2,9 @@ package notes
 
 import (
 	"echo-notes/businesses/notes"
-	"echo-notes/controller"
-	"echo-notes/controller/notes/request"
-	"echo-notes/controller/notes/response"
+	controller "echo-notes/controllers"
+	"echo-notes/controllers/notes/request"
+	"echo-notes/controllers/notes/response"
 	"net/http"
 
 	"github.com/labstack/echo/v4"

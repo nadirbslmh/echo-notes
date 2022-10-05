@@ -3,8 +3,8 @@ package users
 import (
 	"echo-notes/app/middlewares"
 	"echo-notes/businesses/users"
-	"echo-notes/controller/users/request"
-	"echo-notes/controller/users/response"
+	"echo-notes/controllers/users/request"
+	"echo-notes/controllers/users/response"
 	"net/http"
 
 	"github.com/golang-jwt/jwt"

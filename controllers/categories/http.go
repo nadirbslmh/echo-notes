@@ -2,9 +2,9 @@ package categories
 
 import (
 	"echo-notes/businesses/categories"
-	"echo-notes/controller"
-	"echo-notes/controller/categories/request"
-	"echo-notes/controller/categories/response"
+	controller "echo-notes/controllers"
+	"echo-notes/controllers/categories/request"
+	"echo-notes/controllers/categories/response"
 	"net/http"
 
 	"github.com/labstack/echo/v4"

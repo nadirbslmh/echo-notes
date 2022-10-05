@@ -9,14 +9,14 @@ import (
 	"testing"
 
 	_noteUseCase "echo-notes/businesses/notes"
-	_noteController "echo-notes/controller/notes"
-	"echo-notes/controller/users/request"
+	_noteController "echo-notes/controllers/notes"
+	"echo-notes/controllers/users/request"
 
 	_categoryUseCase "echo-notes/businesses/categories"
-	_categoryController "echo-notes/controller/categories"
+	_categoryController "echo-notes/controllers/categories"
 
 	_userUseCase "echo-notes/businesses/users"
-	_userController "echo-notes/controller/users"
+	_userController "echo-notes/controllers/users"
 
 	_dbDriver "echo-notes/drivers/mysql"
 	"echo-notes/drivers/mysql/categories"

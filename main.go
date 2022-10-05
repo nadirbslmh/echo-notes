@@ -6,13 +6,13 @@ import (
 	"log"
 
 	_noteUseCase "echo-notes/businesses/notes"
-	_noteController "echo-notes/controller/notes"
+	_noteController "echo-notes/controllers/notes"
 
 	_categoryUseCase "echo-notes/businesses/categories"
-	_categoryController "echo-notes/controller/categories"
+	_categoryController "echo-notes/controllers/categories"
 
 	_userUseCase "echo-notes/businesses/users"
-	_userController "echo-notes/controller/users"
+	_userController "echo-notes/controllers/users"
 
 	_dbDriver "echo-notes/drivers/mysql"
 

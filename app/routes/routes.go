@@ -1,9 +1,9 @@
 package routes
 
 import (
-	"echo-notes/controller/categories"
-	"echo-notes/controller/notes"
-	"echo-notes/controller/users"
+	"echo-notes/controllers/categories"
+	"echo-notes/controllers/notes"
+	"echo-notes/controllers/users"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
