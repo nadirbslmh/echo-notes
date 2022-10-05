@@ -1,289 +1,436 @@
 package main
 
-// import (
-// 	"echo-notes/database"
-// 	"echo-notes/model"
-// 	"echo-notes/route"
-// 	"encoding/json"
-// 	"net/http"
-// 	"strconv"
-// 	"testing"
+import (
+	_driverFactory "echo-notes/drivers"
+	"echo-notes/util"
+	"encoding/json"
+	"net/http"
+	"strconv"
+	"testing"
 
-// 	"github.com/labstack/echo/v4"
-// 	"github.com/steinfletcher/apitest"
-// )
+	_noteUseCase "echo-notes/businesses/notes"
+	_noteController "echo-notes/controller/notes"
+	"echo-notes/controller/users/request"
 
-// func newApp() *echo.Echo {
-// 	database.InitTestDB()
+	_categoryUseCase "echo-notes/businesses/categories"
+	_categoryController "echo-notes/controller/categories"
 
-// 	app := echo.New()
+	_userUseCase "echo-notes/businesses/users"
+	_userController "echo-notes/controller/users"
 
-// 	route.SetupRoute(app)
+	_dbDriver "echo-notes/drivers/mysql"
+	"echo-notes/drivers/mysql/categories"
+	"echo-notes/drivers/mysql/notes"
+	"echo-notes/drivers/mysql/users"
 
-// 	return app
-// }
+	_middleware "echo-notes/app/middlewares"
+	_routes "echo-notes/app/routes"
 
-// func cleanup(res *http.Response, req *http.Request, apiTest *apitest.APITest) {
-// 	if http.StatusOK == res.StatusCode || http.StatusCreated == res.StatusCode {
-// 		database.CleanSeeders()
-// 	}
-// }
+	echo "github.com/labstack/echo/v4"
+	"github.com/steinfletcher/apitest"
+)
 
-// func getJWTToken(t *testing.T) string {
-// 	user := database.SeedUser()
+func newApp() *echo.Echo {
+	configDB := _dbDriver.ConfigDB{
+		DB_USERNAME: util.GetConfig("DB_USERNAME"),
+		DB_PASSWORD: util.GetConfig("DB_PASSWORD"),
+		DB_HOST:     util.GetConfig("DB_HOST"),
+		DB_PORT:     util.GetConfig("DB_PORT"),
+		DB_NAME:     util.GetConfig("DB_TEST_NAME"),
+	}
 
-// 	var userRequest *model.UserInput = &model.UserInput{
-// 		Email:    user.Email,
-// 		Password: user.Password,
-// 	}
+	db := configDB.InitDB()
 
-// 	var resp *http.Response = apitest.New().
-// 		Handler(newApp()).
-// 		Post("/api/v1/users/login").
-// 		JSON(userRequest).
-// 		Expect(t).
-// 		Status(http.StatusOK).
-// 		End().Response
+	_dbDriver.DBMigrate(db)
 
-// 	var response map[string]string = map[string]string{}
+	configJWT := _middleware.ConfigJWT{
+		SecretJWT:       util.GetConfig("JWT_SECRET_KEY"),
+		ExpiresDuration: 1,
+	}
 
-// 	json.NewDecoder(resp.Body).Decode(&response)
+	configLogger := _middleware.ConfigLogger{
+		Format: "[${time_rfc3339}] ${status} ${method} ${host} ${path} ${latency_human}" + "\n",
+	}
 
-// 	var token string = response["token"]
+	e := echo.New()
 
-// 	var JWT_TOKEN = "Bearer " + token
+	categoryRepo := _driverFactory.NewCategoryRepository(db)
+	categoryUsecase := _categoryUseCase.NewCategoryUsecase(categoryRepo)
+	categoryCtrl := _categoryController.NewCategoryController(categoryUsecase)
 
-// 	return JWT_TOKEN
-// }
+	noteRepo := _driverFactory.NewNoteRepository(db)
+	noteUsecase := _noteUseCase.NewNoteUsecase(noteRepo)
+	noteCtrl := _noteController.NewNoteController(noteUsecase)
 
-// func TestRegister_Success(t *testing.T) {
-// 	var userRequest *model.UserInput = &model.UserInput{
-// 		Email:    "test@mail.com",
-// 		Password: "123123",
-// 	}
+	userRepo := _driverFactory.NewUserRepository(db)
+	userUsecase := _userUseCase.NewUserUsecase(userRepo, &configJWT)
+	userCtrl := _userController.NewAuthController(userUsecase)
 
-// 	apitest.New().
-// 		Observe(cleanup).
-// 		Handler(newApp()).
-// 		Post("/api/v1/users/register").
-// 		JSON(userRequest).
-// 		Expect(t).
-// 		Status(http.StatusCreated).
-// 		End()
-// }
+	routesInit := _routes.ControllerList{
+		LoggerMiddleware:   configLogger.Init(),
+		JWTMiddleware:      configJWT.Init(),
+		CategoryController: *categoryCtrl,
+		NoteController:     *noteCtrl,
+		AuthController:     *userCtrl,
+	}
 
-// func TestRegister_ValidationFailed(t *testing.T) {
-// 	var userRequest *model.UserInput = &model.UserInput{
-// 		Email:    "",
-// 		Password: "",
-// 	}
+	routesInit.RouteRegister(e)
 
-// 	apitest.New().
-// 		Handler(newApp()).
-// 		Post("/api/v1/users/register").
-// 		JSON(userRequest).
-// 		Expect(t).
-// 		Status(http.StatusBadRequest).
-// 		End()
-// }
+	return e
+}
 
-// func TestLogin_Success(t *testing.T) {
-// 	user := database.SeedUser()
+func cleanup(res *http.Response, req *http.Request, apiTest *apitest.APITest) {
+	if http.StatusOK == res.StatusCode || http.StatusCreated == res.StatusCode {
+		configDB := _dbDriver.ConfigDB{
+			DB_USERNAME: util.GetConfig("DB_USERNAME"),
+			DB_PASSWORD: util.GetConfig("DB_PASSWORD"),
+			DB_HOST:     util.GetConfig("DB_HOST"),
+			DB_PORT:     util.GetConfig("DB_PORT"),
+			DB_NAME:     util.GetConfig("DB_TEST_NAME"),
+		}
 
-// 	var userRequest *model.UserInput = &model.UserInput{
-// 		Email:    user.Email,
-// 		Password: user.Password,
-// 	}
+		db := configDB.InitDB()
 
-// 	apitest.New().
-// 		Handler(newApp()).
-// 		Post("/api/v1/users/login").
-// 		JSON(userRequest).
-// 		Expect(t).
-// 		Status(http.StatusOK).
-// 		End()
-// }
+		_dbDriver.CleanSeeders(db)
+	}
+}
 
-// func TestLogin_ValidationFailed(t *testing.T) {
-// 	var userRequest *model.UserInput = &model.UserInput{
-// 		Email:    "",
-// 		Password: "",
-// 	}
+func getJWTToken(t *testing.T) string {
+	configDB := _dbDriver.ConfigDB{
+		DB_USERNAME: util.GetConfig("DB_USERNAME"),
+		DB_PASSWORD: util.GetConfig("DB_PASSWORD"),
+		DB_HOST:     util.GetConfig("DB_HOST"),
+		DB_PORT:     util.GetConfig("DB_PORT"),
+		DB_NAME:     util.GetConfig("DB_TEST_NAME"),
+	}
 
-// 	apitest.New().
-// 		Handler(newApp()).
-// 		Post("/api/v1/users/login").
-// 		JSON(userRequest).
-// 		Expect(t).
-// 		Status(http.StatusBadRequest).
-// 		End()
-// }
+	db := configDB.InitDB()
 
-// func TestLogin_Failed(t *testing.T) {
-// 	var userRequest *model.UserInput = &model.UserInput{
-// 		Email:    "notfound@mail.com",
-// 		Password: "123123",
-// 	}
+	user := _dbDriver.SeedUser(db)
 
-// 	apitest.New().
-// 		Handler(newApp()).
-// 		Post("/api/v1/users/login").
-// 		JSON(userRequest).
-// 		Expect(t).
-// 		Status(http.StatusUnauthorized).
-// 		End()
-// }
+	var userRequest *request.User = &request.User{
+		Email:    user.Email,
+		Password: user.Password,
+	}
 
-// func TestGetNotes_Success(t *testing.T) {
-// 	var token string = getJWTToken(t)
+	var resp *http.Response = apitest.New().
+		Handler(newApp()).
+		Post("/api/v1/users/login").
+		JSON(userRequest).
+		Expect(t).
+		Status(http.StatusOK).
+		End().Response
 
-// 	apitest.New().
-// 		Observe(cleanup).
-// 		Handler(newApp()).
-// 		Get("/api/v1/notes").
-// 		Header("Authorization", token).
-// 		Expect(t).
-// 		Status(http.StatusOK).
-// 		End()
-// }
+	var response map[string]string = map[string]string{}
 
-// func TestGetNote_Success(t *testing.T) {
-// 	var note model.Note = database.SeedNote()
+	json.NewDecoder(resp.Body).Decode(&response)
 
-// 	noteID := strconv.Itoa(int(note.ID))
+	var token string = response["token"]
 
-// 	var token string = getJWTToken(t)
+	var JWT_TOKEN = "Bearer " + token
 
-// 	apitest.New().
-// 		Observe(cleanup).
-// 		Handler(newApp()).
-// 		Get("/api/v1/notes/"+noteID).
-// 		Header("Authorization", token).
-// 		Expect(t).
-// 		Status(http.StatusOK).
-// 		End()
-// }
+	return JWT_TOKEN
+}
 
-// func TestGetNote_NotFound(t *testing.T) {
-// 	var token string = getJWTToken(t)
+func getUser() users.User {
+	configDB := _dbDriver.ConfigDB{
+		DB_USERNAME: util.GetConfig("DB_USERNAME"),
+		DB_PASSWORD: util.GetConfig("DB_PASSWORD"),
+		DB_HOST:     util.GetConfig("DB_HOST"),
+		DB_PORT:     util.GetConfig("DB_PORT"),
+		DB_NAME:     util.GetConfig("DB_TEST_NAME"),
+	}
 
-// 	apitest.New().
-// 		Handler(newApp()).
-// 		Get("/api/v1/notes/0").
-// 		Header("Authorization", token).
-// 		Expect(t).
-// 		Status(http.StatusNotFound).
-// 		End()
-// }
+	db := configDB.InitDB()
 
-// func TestCreateNote_Success(t *testing.T) {
-// 	category := database.SeedCategory()
+	user := _dbDriver.SeedUser(db)
 
-// 	var noteRequest *model.NoteInput = &model.NoteInput{
-// 		Title:      "test",
-// 		Content:    "test",
-// 		CategoryID: category.ID,
-// 	}
+	return user
+}
 
-// 	var token string = getJWTToken(t)
+func getNote() notes.Note {
+	configDB := _dbDriver.ConfigDB{
+		DB_USERNAME: util.GetConfig("DB_USERNAME"),
+		DB_PASSWORD: util.GetConfig("DB_PASSWORD"),
+		DB_HOST:     util.GetConfig("DB_HOST"),
+		DB_PORT:     util.GetConfig("DB_PORT"),
+		DB_NAME:     util.GetConfig("DB_TEST_NAME"),
+	}
 
-// 	apitest.New().
-// 		Observe(cleanup).
-// 		Handler(newApp()).
-// 		Post("/api/v1/notes").
-// 		Header("Authorization", token).
-// 		JSON(noteRequest).
-// 		Expect(t).
-// 		Status(http.StatusCreated).
-// 		End()
-// }
+	db := configDB.InitDB()
 
-// func TestCreateNote_ValidationFailed(t *testing.T) {
-// 	var noteRequest *model.NoteInput = &model.NoteInput{}
+	note := _dbDriver.SeedNote(db)
 
-// 	var token string = getJWTToken(t)
+	return note
+}
 
-// 	apitest.New().
-// 		Handler(newApp()).
-// 		Post("/api/v1/notes").
-// 		Header("Authorization", token).
-// 		JSON(noteRequest).
-// 		Expect(t).
-// 		Status(http.StatusBadRequest).
-// 		End()
-// }
+func getCategory() categories.Category {
+	configDB := _dbDriver.ConfigDB{
+		DB_USERNAME: util.GetConfig("DB_USERNAME"),
+		DB_PASSWORD: util.GetConfig("DB_PASSWORD"),
+		DB_HOST:     util.GetConfig("DB_HOST"),
+		DB_PORT:     util.GetConfig("DB_PORT"),
+		DB_NAME:     util.GetConfig("DB_TEST_NAME"),
+	}
 
-// func TestUpdateNote_Success(t *testing.T) {
-// 	var note model.Note = database.SeedNote()
+	db := configDB.InitDB()
 
-// 	category := database.SeedCategory()
+	category := _dbDriver.SeedCategory(db)
 
-// 	var noteRequest *model.NoteInput = &model.NoteInput{
-// 		Title:      "test",
-// 		Content:    "test",
-// 		CategoryID: category.ID,
-// 	}
+	return category
+}
 
-// 	noteID := strconv.Itoa(int(note.ID))
+func TestRegister_Success(t *testing.T) {
+	var userRequest *request.User = &request.User{
+		Email:    "test@mail.com",
+		Password: "123123",
+	}
 
-// 	var token string = getJWTToken(t)
+	apitest.New().
+		Observe(cleanup).
+		Handler(newApp()).
+		Post("/api/v1/users/register").
+		JSON(userRequest).
+		Expect(t).
+		Status(http.StatusCreated).
+		End()
+}
 
-// 	apitest.New().
-// 		Observe(cleanup).
-// 		Handler(newApp()).
-// 		Put("/api/v1/notes/"+noteID).
-// 		Header("Authorization", token).
-// 		JSON(noteRequest).
-// 		Expect(t).
-// 		Status(http.StatusOK).
-// 		End()
-// }
+func TestRegister_ValidationFailed(t *testing.T) {
+	var userRequest *request.User = &request.User{
+		Email:    "",
+		Password: "",
+	}
 
-// func TestUpdateNote_ValidationFailed(t *testing.T) {
-// 	var note model.Note = database.SeedNote()
+	apitest.New().
+		Handler(newApp()).
+		Post("/api/v1/users/register").
+		JSON(userRequest).
+		Expect(t).
+		Status(http.StatusBadRequest).
+		End()
+}
 
-// 	var noteRequest *model.NoteInput = &model.NoteInput{}
+func TestLogin_Success(t *testing.T) {
+	user := getUser()
 
-// 	noteID := strconv.Itoa(int(note.ID))
+	var userRequest *request.User = &request.User{
+		Email:    user.Email,
+		Password: user.Password,
+	}
 
-// 	var token string = getJWTToken(t)
+	apitest.New().
+		Handler(newApp()).
+		Post("/api/v1/users/login").
+		JSON(userRequest).
+		Expect(t).
+		Status(http.StatusOK).
+		End()
+}
 
-// 	apitest.New().
-// 		Handler(newApp()).
-// 		Put("/api/v1/notes/"+noteID).
-// 		Header("Authorization", token).
-// 		JSON(noteRequest).
-// 		Expect(t).
-// 		Status(http.StatusBadRequest).
-// 		End()
-// }
+func TestLogin_ValidationFailed(t *testing.T) {
+	var userRequest *request.User = &request.User{
+		Email:    "",
+		Password: "",
+	}
 
-// func TestDeleteNote_Success(t *testing.T) {
-// 	var note model.Note = database.SeedNote()
+	apitest.New().
+		Handler(newApp()).
+		Post("/api/v1/users/login").
+		JSON(userRequest).
+		Expect(t).
+		Status(http.StatusBadRequest).
+		End()
+}
 
-// 	var token string = getJWTToken(t)
+func TestLogin_Failed(t *testing.T) {
+	var userRequest *request.User = &request.User{
+		Email:    "notfound@mail.com",
+		Password: "123123",
+	}
 
-// 	noteID := strconv.Itoa(int(note.ID))
+	apitest.New().
+		Handler(newApp()).
+		Post("/api/v1/users/login").
+		JSON(userRequest).
+		Expect(t).
+		Status(http.StatusUnauthorized).
+		End()
+}
 
-// 	apitest.New().
-// 		Observe(cleanup).
-// 		Handler(newApp()).
-// 		Delete("/api/v1/notes/"+noteID).
-// 		Header("Authorization", token).
-// 		Expect(t).
-// 		Status(http.StatusOK).
-// 		End()
-// }
+func TestGetNotes_Success(t *testing.T) {
+	var token string = getJWTToken(t)
 
-// func TestDeleteNote_Failed(t *testing.T) {
-// 	var token string = getJWTToken(t)
+	apitest.New().
+		Observe(cleanup).
+		Handler(newApp()).
+		Get("/api/v1/notes").
+		Header("Authorization", token).
+		Expect(t).
+		Status(http.StatusOK).
+		End()
+}
 
-// 	apitest.New().
-// 		Handler(newApp()).
-// 		Observe(cleanup).
-// 		Delete("/api/v1/notes/-1").
-// 		Header("Authorization", token).
-// 		Expect(t).
-// 		Status(http.StatusInternalServerError).
-// 		End()
-// }
+func TestGetNote_Success(t *testing.T) {
+	var note notes.Note = getNote()
+
+	noteID := strconv.Itoa(int(note.ID))
+
+	var token string = getJWTToken(t)
+
+	apitest.New().
+		Observe(cleanup).
+		Handler(newApp()).
+		Get("/api/v1/notes/"+noteID).
+		Header("Authorization", token).
+		Expect(t).
+		Status(http.StatusOK).
+		End()
+}
+
+func TestGetNote_NotFound(t *testing.T) {
+	var token string = getJWTToken(t)
+
+	apitest.New().
+		Handler(newApp()).
+		Get("/api/v1/notes/0").
+		Header("Authorization", token).
+		Expect(t).
+		Status(http.StatusNotFound).
+		End()
+}
+
+func TestCreateNote_Success(t *testing.T) {
+	category := getCategory()
+
+	var noteRequest *notes.Note = &notes.Note{
+		Title:      "test",
+		Content:    "test",
+		CategoryID: category.ID,
+	}
+
+	var token string = getJWTToken(t)
+
+	apitest.New().
+		Observe(cleanup).
+		Handler(newApp()).
+		Post("/api/v1/notes").
+		Header("Authorization", token).
+		JSON(noteRequest).
+		Expect(t).
+		Status(http.StatusCreated).
+		End()
+}
+
+func TestCreateNote_ValidationFailed(t *testing.T) {
+	var noteRequest *notes.Note = &notes.Note{}
+
+	var token string = getJWTToken(t)
+
+	apitest.New().
+		Handler(newApp()).
+		Post("/api/v1/notes").
+		Header("Authorization", token).
+		JSON(noteRequest).
+		Expect(t).
+		Status(http.StatusBadRequest).
+		End()
+}
+
+func TestUpdateNote_Success(t *testing.T) {
+	var note notes.Note = getNote()
+
+	category := getCategory()
+
+	var noteRequest *notes.Note = &notes.Note{
+		Title:      "test",
+		Content:    "test",
+		CategoryID: category.ID,
+	}
+
+	noteID := strconv.Itoa(int(note.ID))
+
+	var token string = getJWTToken(t)
+
+	apitest.New().
+		Observe(cleanup).
+		Handler(newApp()).
+		Put("/api/v1/notes/"+noteID).
+		Header("Authorization", token).
+		JSON(noteRequest).
+		Expect(t).
+		Status(http.StatusOK).
+		End()
+}
+
+func TestUpdateNote_ValidationFailed(t *testing.T) {
+	var note notes.Note = getNote()
+
+	var noteRequest *notes.Note = &notes.Note{}
+
+	noteID := strconv.Itoa(int(note.ID))
+
+	var token string = getJWTToken(t)
+
+	apitest.New().
+		Handler(newApp()).
+		Put("/api/v1/notes/"+noteID).
+		Header("Authorization", token).
+		JSON(noteRequest).
+		Expect(t).
+		Status(http.StatusBadRequest).
+		End()
+}
+
+func TestDeleteNote_Success(t *testing.T) {
+	var note notes.Note = getNote()
+
+	var token string = getJWTToken(t)
+
+	noteID := strconv.Itoa(int(note.ID))
+
+	apitest.New().
+		Observe(cleanup).
+		Handler(newApp()).
+		Delete("/api/v1/notes/"+noteID).
+		Header("Authorization", token).
+		Expect(t).
+		Status(http.StatusOK).
+		End()
+}
+
+func TestDeleteNote_Failed(t *testing.T) {
+	var token string = getJWTToken(t)
+
+	apitest.New().
+		Handler(newApp()).
+		Observe(cleanup).
+		Delete("/api/v1/notes/-1").
+		Header("Authorization", token).
+		Expect(t).
+		Status(http.StatusInternalServerError).
+		End()
+}
+
+func TestLogout_Success(t *testing.T) {
+	var token string = getJWTToken(t)
+
+	apitest.New().
+		Handler(newApp()).
+		Observe(cleanup).
+		Post("/api/v1/users/logout").
+		Header("Authorization", token).
+		Expect(t).
+		Status(http.StatusOK).
+		End()
+}
+
+func TestLogout_Failed(t *testing.T) {
+	apitest.New().
+		Handler(newApp()).
+		Observe(cleanup).
+		Post("/api/v1/users/logout").
+		Expect(t).
+		Status(http.StatusBadRequest).
+		End()
+}

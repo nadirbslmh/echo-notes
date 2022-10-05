@@ -4,7 +4,7 @@ import (
 	"echo-notes/drivers/mysql/categories"
 	"echo-notes/drivers/mysql/notes"
 	"echo-notes/drivers/mysql/users"
-	"echo-notes/model"
+	"echo-notes/util"
 	"errors"
 	"fmt"
 	"log"
@@ -48,62 +48,56 @@ func DBMigrate(db *gorm.DB) {
 	db.AutoMigrate(&notes.Note{}, &categories.Category{}, &users.User{})
 }
 
-func SeedCategory(db *gorm.DB) model.Category {
-	var category model.Category = model.Category{
-		Name: "sample",
-	}
+func SeedCategory(db *gorm.DB) categories.Category {
+	category, _ := util.CreateFaker[categories.Category]()
 
 	if err := db.Create(&category).Error; err != nil {
 		panic(err)
 	}
 
-	var createdCategory model.Category
+	db.Last(&category)
 
-	db.Last(&createdCategory)
-
-	return createdCategory
+	return category
 }
 
-func SeedNote(db *gorm.DB) model.Note {
+func SeedNote(db *gorm.DB) notes.Note {
 
 	category := SeedCategory(db)
 
-	var note model.Note = model.Note{
-		Title:      "test",
-		Content:    "test",
-		CategoryID: category.ID,
-	}
+	note, _ := util.CreateFaker[notes.Note]()
+
+	note.CategoryID = category.ID
 
 	if err := db.Create(&note).Error; err != nil {
 		panic(err)
 	}
 
-	var createdNote model.Note
+	db.Last(&note)
 
-	db.Last(&createdNote)
-
-	return createdNote
+	return note
 }
 
-func SeedUser(db *gorm.DB) model.User {
+func SeedUser(db *gorm.DB) users.User {
 	password, _ := bcrypt.GenerateFromPassword([]byte("123123"), bcrypt.DefaultCost)
 
-	var user model.User = model.User{
-		Email:    "testing@mail.com",
+	fakeUser, _ := util.CreateFaker[users.User]()
+
+	userRecord := users.User{
+		Email:    fakeUser.Email,
 		Password: string(password),
 	}
 
-	if err := db.Create(&user).Error; err != nil {
+	if err := db.Create(&userRecord).Error; err != nil {
 		panic(err)
 	}
 
-	var createdUser model.User
+	var foundUser users.User
 
-	db.Last(&createdUser)
+	db.Last(&foundUser)
 
-	createdUser.Password = "123123"
+	foundUser.Password = "123123"
 
-	return createdUser
+	return foundUser
 }
 
 func CleanSeeders(db *gorm.DB) {
