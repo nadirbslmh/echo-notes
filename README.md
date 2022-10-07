@@ -25,3 +25,7 @@ CREATE DATABASE echo_notes;
 ```sh
 go run main.go
 ```
+
+## Resources
+
+- [Graceful Shutdown Implementation](https://medium.com/tokopedia-engineering/gracefully-shutdown-your-go-application-9e7d5c73b5ac).
